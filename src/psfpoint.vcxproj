@@ -143,8 +143,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="psfpoint.c" />
-    <ClCompile Include="psftag.c" />
+    <ClCompile Include="psfpoint.cpp" />
+    <ClCompile Include="psftag.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="psftag.h" />

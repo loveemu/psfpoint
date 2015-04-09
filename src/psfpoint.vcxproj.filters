@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="psfpoint.c">
+    <ClCompile Include="psfpoint.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="psftag.c">
+    <ClCompile Include="psftag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

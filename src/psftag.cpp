@@ -288,7 +288,8 @@ void psftag_raw_setvar(
   const char *value
 ) {
   size_t tag_l = strlen(tag);
-  int i, i_end;
+  int i;
+  int i_end;
   size_t z;
   size_t insert_i;
   size_t insert_l;
@@ -357,7 +358,7 @@ void psftag_raw_setvar(
     movel = tag_l - i_end;
     if(movel > (tag_max_usable_size-(insert_i+insert_l))) { movel = tag_max_usable_size - (insert_i+insert_l); }
     /* perform the move */
-    if(movel && ((insert_i+insert_l) != i_end)) {
+    if(movel && ((insert_i+insert_l) != (size_t)i_end)) {
       memmove(tag+insert_i+insert_l, tag+i_end, movel);
     }
     z = insert_i+insert_l+movel;
@@ -400,7 +401,7 @@ struct PSFTAG {
 };
 
 void *psftag_create(void) {
-  struct PSFTAG *p = malloc(sizeof(struct PSFTAG));
+  struct PSFTAG *p = (PSFTAG *)malloc(sizeof(struct PSFTAG));
   if(!p) return NULL;
   p->str[0] = 0;
   p->errorstring[0] = 0;

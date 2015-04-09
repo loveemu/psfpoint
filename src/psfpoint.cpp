@@ -51,10 +51,10 @@ int parseoption(
   if(!strcmp(a, "tf")) {
     if(output) printf("title=[from filename]\n");
     if(!filename) return 0;
-    var = malloc(6);
+    var = (char *)malloc(6);
     if(!var) abort();
     strcpy(var, "title");
-    val = malloc(strlen(filename) + 1);
+	val = (char *)malloc(strlen(filename) + 1);
     if(!val) abort();
     strcpy(val, filename);
     titlefromfilename(val);
@@ -64,12 +64,12 @@ int parseoption(
       fprintf(stderr, "unknown option '-%s'\n", a);
       return 1;
     }
-    var = malloc((b - a) + 1);
+	var = (char *)malloc((b - a) + 1);
     if(!var) abort();
     memcpy(var, a, b - a);
     var[b - a] = 0;
     b++;
-    val = malloc(strlen(b) + 1);
+	val = (char *)malloc(strlen(b) + 1);
     if(!val) abort();
     strcpy(val, b);
   }
