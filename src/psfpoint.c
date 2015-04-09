@@ -6,6 +6,10 @@
 
 #include "psftag.h"
 
+#ifdef WIN32
+#define strcasecmp _stricmp
+#endif
+
 /////////////////////////////////////////////////////////////////////////////
 
 void titlefromfilename(char *filename) {

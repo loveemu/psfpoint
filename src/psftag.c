@@ -18,10 +18,13 @@
 
 /////////////////////////////////////////////////////////////////////////////
 
-#if defined(__WIN32__)
+#if defined(WIN32)
+
+#include <sys/stat.h>
 
 #include <windows.h>
-static void truncate(const char *filename, long size) {
+
+static void truncate(const char *filename, off_t size) {
   HANDLE f = CreateFile(
     filename,
     GENERIC_WRITE,
@@ -280,16 +283,17 @@ int psftag_raw_getvar(
 
 void psftag_raw_setvar(
   char *tag,
-  int tag_max_size,
+  size_t tag_max_size,
   const char *variable,
   const char *value
 ) {
-  int tag_l = strlen(tag);
-  int i, i_end, z;
-  int insert_i;
-  int insert_l;
+  size_t tag_l = strlen(tag);
+  int i, i_end;
+  size_t z;
+  size_t insert_i;
+  size_t insert_l;
   int value_exists = 0;
-  int tag_max_usable_size = tag_max_size - 1;
+  size_t tag_max_usable_size = tag_max_size - 1;
   //
   // Safety check
   //
@@ -305,7 +309,7 @@ void psftag_raw_setvar(
   ** Determine the insertion length of the new variable
   */
   { const char *v;
-    int nl = strlen(variable);
+    size_t nl = strlen(variable);
     insert_l = nl + 2;
     for(v = value; *v; v++) {
       insert_l++;
@@ -344,7 +348,7 @@ void psftag_raw_setvar(
   ** Otherwise, find the variable end index
   */
   } else {
-    int movel;
+    size_t movel;
     insert_i = i;
     /* Clamp insert length */
     if((insert_i + insert_l) > tag_max_usable_size) { insert_l = tag_max_usable_size - insert_i; }
@@ -503,7 +507,7 @@ error:
 int psftag_writetofile(void *psftag, const char *path) {
   struct PSFTAG *t = (struct PSFTAG*)psftag;
   FILE *f = NULL;
-  int l;
+  size_t l;
   int rsize, exesize, tagstart;
   char hdr[12];
 
@@ -538,7 +542,7 @@ int psftag_writetofile(void *psftag, const char *path) {
   fwrite(t->str, 1, l, f);
   fclose(f);
 
-  truncate(path, tagstart + 5 + l);
+  truncate(path, (off_t)(tagstart + 5 + l));
 
   return 0;
 

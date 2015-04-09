@@ -48,7 +48,7 @@ int psftag_raw_getvar(const char *tag, const char *variable, char *value_out, in
 // Note that this function assumes it can overwrite *tag up to the length of the
 // existing string, regardless of tag_max_size.
 //
-void psftag_raw_setvar(char *tag, int tag_max_size, const char *variable, const char *value);
+void psftag_raw_setvar(char *tag, size_t tag_max_size, const char *variable, const char *value);
 
 #ifdef __cplusplus
 }
