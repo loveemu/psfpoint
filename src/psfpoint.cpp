@@ -10,6 +10,10 @@
 #define strcasecmp _stricmp
 #endif
 
+#define APP_NAME    "PSFPoint"
+#define APP_VER     "[2015-04-09]"
+#define APP_DESC    "Simple command-line PSF tagger"
+
 /////////////////////////////////////////////////////////////////////////////
 
 void titlefromfilename(char *filename) {
@@ -87,11 +91,13 @@ int main(int argc, char **argv) {
   int opt, optstart;
 
   if(argc < 3) {
-    fprintf(stderr, "PSFPoint v1.04 - Simple command-line PSF tagger\n");
-    fprintf(stderr, "Written by Neill Corlett\n");
-    fprintf(stderr, "1.04 modifications by ugetab\n");
+    fprintf(stderr, "%s %s - %s\n", APP_NAME, APP_VER, APP_DESC);
+    fprintf(stderr, "======================================================\n", APP_VER);
     fprintf(stderr, "\n");
-    fprintf(stderr, "usage: %s [-tf] [-variable=value ...] psf-file(s)\n", argv[0]);
+	fprintf(stderr, "Written by Neill Corlett\n");
+	fprintf(stderr, "1.04 modifications by ugetab\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "usage: `%s [-tf] [-variable=value ...] psf-file(s)`\n", argv[0]);
     return 1;
   }
 
