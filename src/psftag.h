@@ -29,7 +29,7 @@ int psftag_getvar(void *psftag, const char *variable, char *value_out, int value
 //
 // Set a tag variable.
 //
-void psftag_setvar(void *psftag, const char *variable, const char *value);
+int psftag_setvar(void *psftag, const char *variable, const char *value);
 
 void psftag_getraw(void *psftag, char *raw_out, int raw_out_size);
 void psftag_setraw(void *psftag, const char *raw_in);

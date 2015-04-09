@@ -40,9 +40,143 @@ static void truncate(const char *filename, off_t size) {
   CloseHandle(f);
 }
 
+static bool mbstoutf8(char ** putf8str, const char * mbstr)
+{
+	int ret;
+	int wcs_len;
+	wchar_t * wcstr;
+	int utf8_len;
+	char * utf8str;
+
+	if (mbstr[0] == '\0') {
+		*putf8str = _strdup(mbstr);
+		return true;
+	}
+
+	wcs_len = MultiByteToWideChar(CP_ACP, 0, mbstr, -1, NULL, 0);
+	if (wcs_len == 0) {
+		return false;
+	}
+
+	wcstr = (wchar_t *)malloc(sizeof(wchar_t) * wcs_len);
+	if (wcstr == NULL) {
+		return false;
+	}
+
+	ret = MultiByteToWideChar(CP_ACP, 0, mbstr, -1, wcstr, wcs_len);
+	if (ret == 0) {
+		free(wcstr);
+		return false;
+	}
+
+	utf8_len = WideCharToMultiByte(CP_UTF8, 0, wcstr, -1, NULL, 0, NULL, NULL);
+	if (utf8_len == 0) {
+		free(wcstr);
+		return false;
+	}
+
+	utf8str = (char *)malloc(utf8_len);
+	if (utf8str == NULL) {
+		free(wcstr);
+		return false;
+	}
+
+	ret = WideCharToMultiByte(CP_UTF8, 0, wcstr, -1, utf8str, utf8_len, NULL, NULL);
+	if (ret == 0) {
+		free(utf8str);
+		free(wcstr);
+		return false;
+	}
+
+	free(wcstr);
+
+	*putf8str = utf8str;
+	return true;
+}
+
+static bool utf8tombs(char ** pmbstr, const char * utf8str)
+{
+	int ret;
+	int wcs_len;
+	wchar_t * wcstr;
+	int mbs_len;
+	char * mbstr;
+
+	if (utf8str[0] == '\0') {
+		*pmbstr = _strdup(utf8str);
+		return true;
+	}
+
+	wcs_len = MultiByteToWideChar(CP_UTF8, 0, utf8str, -1, NULL, 0);
+	if (wcs_len == 0) {
+		return false;
+	}
+
+	wcstr = (wchar_t *)malloc(sizeof(wchar_t) * wcs_len);
+	if (wcstr == NULL) {
+		return false;
+	}
+
+	ret = MultiByteToWideChar(CP_UTF8, 0, utf8str, -1, wcstr, wcs_len);
+	if (ret == 0) {
+		free(wcstr);
+		return false;
+	}
+
+	mbs_len = WideCharToMultiByte(CP_ACP, 0, wcstr, -1, NULL, 0, NULL, NULL);
+	if (mbs_len == 0) {
+		free(wcstr);
+		return false;
+	}
+
+	mbstr = (char *)malloc(mbs_len);
+	if (mbstr == NULL) {
+		free(wcstr);
+		return false;
+	}
+
+	ret = WideCharToMultiByte(CP_ACP, 0, wcstr, -1, mbstr, mbs_len, NULL, NULL);
+	if (ret == 0) {
+		free(mbstr);
+		free(wcstr);
+		return false;
+	}
+
+	free(wcstr);
+
+	*pmbstr = mbstr;
+	return true;
+}
+
+static void freeconvstr(char * str)
+{
+	free(str);
+}
+
 #else
 
 #include <unistd.h>
+
+/**
+ * Hopefully, a modern unix OS is using utf-8 and needs no charset conversion.
+ */
+
+static bool mbstoutf8(char ** putf8str, const char * mbstr)
+{
+	*putf8str = strdup(mbstr);
+	return (*putf8str != NULL);
+}
+
+static bool utf8tombs(char ** pmbstr, const char * utf8str)
+{
+	*pmbstr = strdup(utf8str);
+	return (*pmbstr != NULL);
+}
+
+static void freeconvstr(char * str)
+{
+	free(str);
+}
 
 #endif
 
@@ -434,11 +568,34 @@ void psftag_setraw(void *psftag, const char *raw_in) {
 /////////////////////////////////////////////////////////////////////////////
 
 int psftag_getvar(void *psftag, const char *variable, char *value_out, int value_out_size) {
-  return psftag_raw_getvar(((struct PSFTAG*)psftag)->str, variable, value_out, value_out_size);
+  char *mbstr;
+
+  int ret = psftag_raw_getvar(((struct PSFTAG*)psftag)->str, variable, value_out, value_out_size);
+  if (ret != 0) {
+    return ret;
+  }
+
+  if (!utf8tombs(&mbstr, value_out)) {
+    strncpy(((struct PSFTAG*)psftag)->errorstring, "Charset conversion error", ERRORMAX);
+    return -1;
+  }
+
+  strncpy(value_out, mbstr, value_out_size);
+  freeconvstr(mbstr);
+  return 0;
 }
 
-void psftag_setvar(void *psftag, const char *variable, const char *value) {
-  psftag_raw_setvar(((struct PSFTAG*)psftag)->str, TAGMAX + 1, variable, value);
+int psftag_setvar(void *psftag, const char *variable, const char *value) {
+  char *utf8str;
+
+  if (!mbstoutf8(&utf8str, value)) {
+    strncpy(((struct PSFTAG*)psftag)->errorstring, "Charset conversion error", ERRORMAX);
+    return -1;
+  }
+
+  psftag_raw_setvar(((struct PSFTAG*)psftag)->str, TAGMAX + 1, variable, utf8str);
+  freeconvstr(utf8str);
+  return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////
