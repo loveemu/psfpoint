@@ -1,0 +1,21 @@
+-----------------------------------------------------------------------------
+PSFPoint Revision History
+-----------------------------------------------------------------------------
+
+v1.04 - 21 October 2004
+  - Unofficial release by ugetab that supports multiple comment lines
+
+v1.03 - 20 July 2004
+  - Rereleased as public domain
+
+v1.02 - 5 June 2003
+  - Rewrote in portable C, opened source
+
+v1.01 - 21 April 2003
+  - Fixed a bug in the wildcard handling
+  - Future-proofed against newer PSF versions
+
+v1.0 - 11 January 2003
+  - First public release
+
+-----------------------------------------------------------------------------
