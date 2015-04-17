@@ -1,168 +1,194 @@
-/////////////////////////////////////////////////////////////////////////////
+
+#define NOMINMAX
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <math.h>
 
-#include "psftag.h"
+#include <string>
+#include <map>
+#include <vector>
+#include <iterator>
+#include <limits>
+#include <algorithm>
 
-#ifdef WIN32
-#define strcasecmp _stricmp
-#endif
+#include "PSFFile.h"
 
-#define APP_NAME    "PSFPoint"
-#define APP_VER     "[2015-04-09]"
-#define APP_DESC    "Simple command-line PSF tagger"
+#define APP_NAME    "psfpoint"
+#define APP_VER     "[2015-04-17]"
+#define APP_URL     "http://github.com/loveemu/psfpoint"
 
-/////////////////////////////////////////////////////////////////////////////
-
-void titlefromfilename(char *filename) {
-  char *t;
-  // trim some beginning characters
-  for(t = filename; t; t++) {
-    if(!strchr(" _%0123456789-", *t)) break;
-  }
-  if(t != filename) { memmove(filename, t, strlen(t) + 1); }
-  // eat after and including last dot
-  t = strrchr(filename, '.');
-  if(t) *t = 0;
-  // replace some other stuff
-  for(t = filename; *t; ) {
-    if(!strncmp(t, "  ", 2)) {
-      memmove(t, t + 1, strlen(t));
-    } else if(!strncmp(t, "%20", 3)) {
-      memmove(t, t + 2, strlen(t) - 1);
-      *t = ' ';
-    } else if(*t == '_') {
-      *t = ' ';
-    } else {
-      t++;
-    }
-  }
-
+bool both_are_spaces(char lhs, char rhs)
+{
+	return (lhs == rhs) && (lhs == ' ');
 }
 
-/////////////////////////////////////////////////////////////////////////////
-
-int parseoption(
-  const char *a,
-  void *psftag,
-  const char *filename,
-  int output
-) {
-  char *var = NULL;
-  char *val = NULL;
-  if(!strcmp(a, "tf")) {
-    if(output) printf("title=[from filename]\n");
-    if(!filename) return 0;
-    var = (char *)malloc(6);
-    if(!var) abort();
-    strcpy(var, "title");
-	val = (char *)malloc(strlen(filename) + 1);
-    if(!val) abort();
-    strcpy(val, filename);
-    titlefromfilename(val);
-  } else {
-    const char *b = strchr(a, '=');
-    if((!b) || (b == a)) {
-      fprintf(stderr, "unknown option '-%s'\n", a);
-      return 1;
-    }
-	var = (char *)malloc((b - a) + 1);
-    if(!var) abort();
-    memcpy(var, a, b - a);
-    var[b - a] = 0;
-    b++;
-	val = (char *)malloc(strlen(b) + 1);
-    if(!val) abort();
-    strcpy(val, b);
-  }
-  if(output) printf("%s=%s\n", var, val);
-  if(psftag) psftag_setvar(psftag, var, val);
-  free(var);
-  free(val);
-  return 0;
+void replace_all(std::string& str, const std::string& from, const std::string& to)
+{
+	std::string::size_type pos = 0;
+	while (pos = str.find(from, pos), pos != std::string::npos) {
+		str.replace(pos, from.length(), to);
+		pos += to.length();
+	}
 }
 
-/////////////////////////////////////////////////////////////////////////////
+static void usage(const char * progname)
+{
+	printf("%s %s\n", APP_NAME, APP_VER);
+	printf("<%s>\n", APP_URL);
+	printf("\n");
+	printf("Usage: `%s [-tf] [-variable=value ...] psf-file(s)`\n", progname);
+	printf("\n");
+}
 
-int main(int argc, char **argv) {
-  int i;
-  int opt, optstart;
+int main(int argc, char *argv[])
+{
+	if (argc == 1) {
+		usage(argv[0]);
+		return EXIT_FAILURE;
+	}
 
-  if(argc < 3) {
-    fprintf(stderr, "%s %s - %s\n", APP_NAME, APP_VER, APP_DESC);
-    fprintf(stderr, "======================================================\n", APP_VER);
-    fprintf(stderr, "\n");
-	fprintf(stderr, "Written by Neill Corlett\n");
-	fprintf(stderr, "1.04 modifications by ugetab\n");
-    fprintf(stderr, "\n");
-    fprintf(stderr, "usage: `%s [-tf] [-variable=value ...] psf-file(s)`\n", argv[0]);
-    return 1;
-  }
+	std::map<std::string, std::string> opt_tags;
+	bool title_from_filename = false;
 
-  /*
-  ** Look for variable=value things
-  */
-  for(i = 1; i < argc; i++) {
-    if(argv[i][0] != '-') break;
-    if(!strcasecmp(argv[i], "--")) { i++; break; }
-    if(parseoption(argv[i] + 1, NULL, NULL, 0)) return 1;
-  }
-  if(i == 1) {
-    fprintf(stderr, "no variables or options were given - nothing to do\n");
-    return 1;
-  }
-  optstart = i;
-  if(optstart >= argc) {
-    fprintf(stderr, "no filenames were given - nothing to do\n");
-    return 1;
-  }
+	int argi = 1;
+	while (argi < argc && argv[argi][0] == '-')
+	{
+		char * p_equal = strchr(argv[argi], '=');
 
-  /*
-  ** Dump variable replacements
-  */
-  fprintf(stdout, "-----replacing variables-----\n");
-  for(i = 1; i < optstart; i++) {
-    if(argv[i][0] != '-') break;
-    if(!strcasecmp(argv[i], "--")) { i++; break; }
-    if(parseoption(argv[i] + 1, NULL, NULL, 1)) return 1;
-  }
-  fprintf(stdout, "-----------------------------\n");
+		if (p_equal != NULL) {
+			// tag option
+			std::string name(argv[argi], 1, p_equal - argv[argi] - 1);
+			std::string value(p_equal + 1);
+			opt_tags[name] = value;
+		}
+		else {
+			// regular option
+			if (strcmp(argv[argi], "--help") == 0) {
+				usage(argv[0]);
+				return EXIT_FAILURE;
+			}
+			else if (strcmp(argv[argi], "-tf") == 0) {
+				title_from_filename = true;
+			}
+			else {
+				fprintf(stderr, "Error: Unknown option \"%s\"\n", argv[argi]);
+				return EXIT_FAILURE;
+			}
+		}
 
+		argi++;
+	}
 
-  for(opt = optstart; opt < argc; opt++) {
-    int r;
-    void *psftag;
-    const char *name = argv[opt];
-    printf("%s: ", name); fflush(stdout);
+	int argnum = argc - argi;
+	if (argnum == 0) {
+		fprintf(stderr, "Error: No input files\n");
+		return EXIT_FAILURE;
+	}
 
-    psftag = psftag_create();
-    if(!psftag) abort();
+	if (opt_tags.size() != 0) {
+		printf("-----replacing variables-----\n");
 
-    //
-    // Okay if it fails - might be untagged
-    //
-    psftag_readfromfile(psftag, name);
+		if (title_from_filename) {
+			printf("title=[from filename]\n");
+		}
 
-    for(i = 1; i < optstart; i++) {
-      if(argv[i][0] != '-') break;
-      if(!strcasecmp(argv[i], "--")) { i++; break; }
-      parseoption(argv[i] + 1, psftag, name, 0);
-    }
+		for (auto itr = opt_tags.begin(); itr != opt_tags.end(); ++itr) {
+			const std::string & name = (*itr).first;
+			const std::string & value = (*itr).second;
 
-    r = psftag_writetofile(psftag, name);
+			if (!title_from_filename || name != "title") {
+				printf("%s=%s\n", name.c_str(), value.c_str());
+			}
+		}
 
-    if(r < 0) {
-      printf("%s\n", psftag_getlasterror(psftag));
-    } else {
-      printf("ok\n");
-    }
+		printf("-----------------------------\n");
+	}
 
-    psftag_delete(psftag);
-  }
+	int num_errors = 0;
+	for (; argi < argc; argi++) {
+		std::string filename(argv[argi]);
 
-  printf("done\n");
+		PSFFile * psf = PSFFile::load(filename);
+		if (psf == NULL) {
+			printf("%s: load error\n", filename.c_str());
+			num_errors++;
+			continue;
+		}
 
-  return 0;
+		std::map<std::string, std::string> psf_tags(opt_tags);
+		if (title_from_filename) {
+			std::string title(filename);
+
+			// remove extension
+			std::string::size_type offset_dot = title.find_last_of('.');
+			if (offset_dot != std::string::npos) {
+				title = title.substr(0, offset_dot);
+			}
+
+			// trim some beginning characters
+			std::string::size_type offset_start = title.find_first_not_of(" _%0123456789-");
+			if (offset_start != std::string::npos) {
+				title = title.substr(offset_start);
+			}
+
+			// replace some other stuff
+			replace_all(title, "%20", " ");
+			replace_all(title, "_", " ");
+
+			// replace multiple spaces with one space
+			std::string::iterator new_end = std::unique(title.begin(), title.end(), both_are_spaces);
+			title.erase(new_end, title.end());
+
+			psf_tags["title"] = title;
+		}
+
+		if (psf_tags.size() != 0) {
+			for (auto itr = psf_tags.begin(); itr != psf_tags.end(); ++itr) {
+				const std::string & name = (*itr).first;
+				const std::string & value = (*itr).second;
+				psf->tags[name] = value;
+			}
+
+			if (!PSFFile::save(filename, psf->version, &psf->reserved[0], psf->reserved.size(), psf->compressed_exe.compressed_data(), psf->compressed_exe.compressed_size(), psf->tags)) {
+				printf("%s: save error\n", filename.c_str());
+				num_errors++;
+				delete psf;
+				continue;
+			}
+
+			printf("%s: ok\n", filename.c_str());
+		}
+		else {
+			// Put tag variables for another PSF tagging
+			const std::map<std::string, std::string> & current_tags = psf->tags;
+
+			printf("psfpoint");
+			for (auto itr = current_tags.begin(); itr != current_tags.end(); ++itr) {
+				const std::string & name = (*itr).first;
+				const std::string & value = (*itr).second;
+
+				if (name.find_first_of(" ") != std::string::npos || value.find_first_of(" ") != std::string::npos || value.find_first_of("\n") != std::string::npos) {
+					printf(" \"-%s=%s\"", name.c_str(), value.c_str());
+				}
+				else {
+					printf(" -%s=%s", name.c_str(), value.c_str());
+				}
+			}
+
+			if (filename.find_first_of(" ") != std::string::npos) {
+				printf(" \"%s\"", filename.c_str());
+			}
+			else {
+				printf(" %s", filename.c_str());
+			}
+			printf("\n");
+		}
+
+		delete psf;
+	}
+
+	return (num_errors == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

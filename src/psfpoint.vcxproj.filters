@@ -18,12 +18,27 @@
     <ClCompile Include="psfpoint.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="psftag.cpp">
+    <ClCompile Include="PSFFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ZlibWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ZlibReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="psftag.h">
+    <ClInclude Include="PSFFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cpath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ZlibReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ZlibWriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

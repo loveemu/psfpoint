@@ -1,19 +1,26 @@
-CC       = gcc
-CXX      = g++
-CFLAGS   = -O2 -fomit-frame-pointer -Wall
-CXXFLAGS = -O2 -fomit-frame-pointer -Wall
-LD       = g++
-LFLAGS   = -s
-OBJECTS  = psfpoint.o psftag.o
-PROGRAM  = psfpoint
+#!/bin/make
+CC = gcc
+CFLAGS = -O2 -DHAVE_STDINT_H
+CXX = g++
+CXXFLAGS = -O2 -DHAVE_STDINT_H
+LDFLAGS = -lm -lz
+TARGET = psfpoint
+SRCS = $(TARGET).cpp PSFFile.cpp ZlibReader.cpp ZlibWriter.cpp
+OBJS := $(SRCS:.cpp=.o)
 
-all: $(PROGRAM)
+.PHONY: all clean
+.SUFFIXES: .c .cpp .o
 
-$(PROGRAM): $(OBJECTS)
-	$(LD) $(LFLAGS) -o $@ $(OBJECTS)
+all: $(TARGET)
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $<
+$(TARGET): $(OBJS)
+	$(CXX) -o $@ $(OBJS) $(LDFLAGS)
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $<
+clean:
+	$(RM) $(TARGET)
+	$(RM) $(OBJS)
+
+.c.o:
+	$(CC) $(CFLAGS) -o $@ -c $^
+.cpp.o:
+	$(CXX) $(CXXFLAGS) -o $@ -c $^
