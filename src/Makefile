@@ -1,8 +1,8 @@
 #!/bin/make
 CC = gcc
-CFLAGS = -O2 -DHAVE_STDINT_H
+CFLAGS = -std=c11 -O2 -DHAVE_STDINT_H
 CXX = g++
-CXXFLAGS = -O2 -DHAVE_STDINT_H
+CXXFLAGS = -std=c++11 -O2 -DHAVE_STDINT_H
 LDFLAGS = -lm -lz
 TARGET = psfpoint
 SRCS = $(TARGET).cpp PSFFile.cpp ZlibReader.cpp ZlibWriter.cpp
