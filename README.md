@@ -52,16 +52,6 @@ psfpoint -comment= *.psf
 
 The possibilities are endless!
 
-Terms of Use
-------------
-
-PSFPoint and its source code are free and have been released to the public
-domain.  You are free to redistribute, modify, use in your own commercial or
-noncommercial work, or even claim you wrote it if you want.  I don't care.
-
-Anyone using PSFPoint does so at their own risk.  No warranty is expressed or
-implied.
-
 Thanks to
 ---------
 
