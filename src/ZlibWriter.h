@@ -29,8 +29,8 @@ public:
 	inline bool writeShort(uint16_t value)
 	{
 		uint8_t data[2] = {
-			value & 0xff,
-			(value >> 8) & 0xff,
+			static_cast<uint8_t>(value & 0xff),
+			static_cast<uint8_t>((value >> 8) & 0xff),
 		};
 		return write(data, 2) == 2;
 	}
@@ -38,10 +38,10 @@ public:
 	inline bool writeInt(uint32_t value)
 	{
 		uint8_t data[4] = {
-			value & 0xff,
-			(value >> 8) & 0xff,
-			(value >> 16) & 0xff,
-			(value >> 24) & 0xff,
+			static_cast<uint8_t>(value & 0xff),
+			static_cast<uint8_t>((value >> 8) & 0xff),
+			static_cast<uint8_t>((value >> 16) & 0xff),
+			static_cast<uint8_t>((value >> 24) & 0xff),
 		};
 		return write(data, 4) == 4;
 	}
