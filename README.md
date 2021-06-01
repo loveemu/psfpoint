@@ -1,6 +1,6 @@
 PSFPoint
 ========
-[![Travis Build Status](https://travis-ci.org/loveemu/psfpoint.svg?branch=master)](https://travis-ci.org/loveemu/psfpoint) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/5y8wb6fc7sdytmi6/branch/master?svg=true)](https://ci.appveyor.com/project/loveemu/psfpoint/branch/master)
+[![Travis Build Status](https://travis-ci.com/loveemu/psfpoint.svg?branch=master)](https://travis-ci.com/loveemu/psfpoint) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/5y8wb6fc7sdytmi6/branch/master?svg=true)](https://ci.appveyor.com/project/loveemu/psfpoint/branch/master)
 
 PSFPoint is a simple command-line PSF tagger written by Neill Corlett.
 
